@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardians of the Prince</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: black;
+      color:aqua;
+    }
+    .square {
+      width: 100px;
+      height: 100px;
+      text-align: center;
+      font-size: 1em;
+      cursor: pointer;
+      color: bisque;
+    }
+    .board-row {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="text-center">Guardians of the Prince</h1>
+      <p id="questStatus" class="text-center">Save the Prince as you tic tac  toe!</p>
+
+      <div id="board" class="text-center"></div>
+        <!-- The game board will be dynamically generated here -->
+      <button id="resetBtn" class="btn btn-primary mt-3">Reset Game</button>
+      <button id="bombBtn" class="btn btn-danger mt-3">Use Bomb</button>
+      <p id="princeStatus" class="text-center">The prince is in danger!</p>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Number of rows and columns in the Tic Tac Toe board
+    const boardSize = 4;
+    // Array to represent the state of the board
+    let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+    // Boolean to check if the game is over
+    let gameOver = false;
+
+    // Function to create the game board
+    function createBoard() {
+      const boardElement = document.getElementById("board");
+
+      for (let i = 0; i < boardSize; i++) {
+        const row = document.createElement("div");
+        row.classList.add("board-row");
+
+        for (let j = 0; j < boardSize; j++) {
+          const square = document.createElement("div");
+          square.classList.add("square", "border");
+          square.dataset.row = i;
+          square.dataset.col = j;
+          square.addEventListener("click", handleSquareClick);
+          document.getElementById("bombBtn").addEventListener("click", useBomb);
+
+          row.appendChild(square);
+        }
+
+        boardElement.appendChild(row);
+      }
+      updatePrinceStatus();
+    }
+
+    // Function to update the prince's status
+    function updatePrinceStatus() {
+      const princeStatusElement = document.getElementById("princeStatus");
+
+      console.log("updatePrinceStatus called");
+      console.log("checkWinner():", checkWinner());
+      console.log("getCurrentPlayerSymbol():", getCurrentPlayerSymbol());
+      if (checkWinner()) {
+        princeStatusElement.textContent = `The Prince is ${
+          getCurrentPlayerSymbol() === "Enemy" ? "killed" : "saved"
+        } by Player ${getCurrentPlayerSymbol()}!`;
+      } else if (checkDraw()) {
+        princeStatusElement.textContent = "The game is a draw. The prince is still in danger!";
+      } else {
+        princeStatusElement.textContent = "All units Alert! The Prince is in danger!!"; // Default status
+      }
+    }
+
+    // Function to handle square click
+    function handleSquareClick(event) {
+      if (gameOver) return;
+
+      const row = parseInt(event.target.dataset.row);
+      const col = parseInt(event.target.dataset.col);
+
+      if (!board[row][col]) {
+        // Update the board with the current player's symbol (e.g., X or O)
+        const currentPlayerSymbol = getCurrentPlayerSymbol();
+        board[row][col] = currentPlayerSymbol;
+        event.target.textContent = currentPlayerSymbol;
+
+        // Check for a winner or a draw
+        if (checkWinner() || checkDraw()) {
+          gameOver = true;
+          alert(`Player ${currentPlayerSymbol} wins!`);
+        } else {
+          // Switch to the next player
+          switchPlayer();
+          updatePrinceStatus();
+          // Call sendGameState to update the server with the new game state
+          //sendGameState();
+          sendMove(row, col);
+        }
+      }
+    }
+
+
+    // Function to check for a winner
+    function checkWinner() {
+    // Check rows
+    for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j <= boardSize - 4; j++) {
+      if (
+        board[i][j] &&
+        board[i][j] === board[i][j + 1] &&
+        board[i][j] === board[i][j + 2] &&
+        board[i][j] === board[i][j + 3]
+      ) {
+        return true; // Found a winner in a row
+      }
+    }
+  }
+
+  // Check columns
+  for (let j = 0; j < boardSize; j++) {
+    for (let i = 0; i <= boardSize - 4; i++) {
+      if (
+        board[i][j] &&
+        board[i][j] === board[i + 1][j] &&
+        board[i][j] === board[i + 2][j] &&
+        board[i][j] === board[i + 3][j]
+      ) {
+        return true; // Found a winner in a column
+      }
+    }
+  }
+
+  // Check diagonals
+  for (let i = 0; i <= boardSize - 4; i++) {
+    for (let j = 0; j <= boardSize - 4; j++) {
+      if (
+        board[i][j] &&
+        board[i][j] === board[i + 1][j + 1] &&
+        board[i][j] === board[i + 2][j + 2] &&
+        board[i][j] === board[i + 3][j + 3]
+      ) {
+        return true; // Found a winner in the main diagonal
+      }
+
+      if (
+        board[i][j + 3] &&
+        board[i][j + 3] === board[i + 1][j + 2] &&
+        board[i][j + 3] === board[i + 2][j + 1] &&
+        board[i][j + 3] === board[i + 3][j]
+      ) {
+        return true; // Found a winner in the other diagonal
+      }
+    }
+  }
+
+  return false; // No winner found
+  console.log("checkWinner called");
+  console.log("getCurrentPlayerSymbol:", getCurrentPlayerSymbol());
+  console.log("board:", board);
+}
+
+    // Function to check for a draw
+    function checkDraw() {
+    for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+        if (!board[i][j]) {
+            // If any square is empty, the game is not a draw
+            return false;
+        }
+        }
+    }
+
+    // All squares are filled, and there is no winner, so it's a draw
+    return true;
+    }
+
+   // Variable to keep track of the current player symbol
+    let currentPlayerSymbol = "X";
+
+    // Function to switch to the next player
+    function switchPlayer() {
+    // Toggle between X and O
+    currentPlayerSymbol = (currentPlayerSymbol === "X") ? "O" : "X";
+    }
+
+
+    // Function to get the current player's symbol
+    function getCurrentPlayerSymbol() {
+      // Implement your own logic to determine the current player's symbol
+      // For simplicity, we use X as the default symbol in this example
+      return "X";
+    }
+    // Function to get the current player's symbol
+    function getCurrentPlayerSymbol() {
+        return currentPlayerSymbol == "X" ? "Enemy" : "Soldier";
+        }
+
+
+    // Function to reset the game
+    function resetGame() {
+      board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+      gameOver = false;
+
+      const squares = document.querySelectorAll(".square");
+      squares.forEach((square) => {
+        square.textContent = "";
+      });
+    }
+
+    // Add this line at the beginning of your script
+    let bombAvailable = true;
+
+    // Function to handle bomb button click
+function useBomb() {
+  if (bombAvailable && !gameOver) {
+    // Prompt the player to choose a square to remove the opponent's symbol
+    let row = parseInt(prompt("Choose the row to remove opponent's symbol (0-2):"));
+    const col = parseInt(prompt("Choose the column to remove opponent's symbol (0-2):"));
+
+    // Check if the chosen square is valid
+    if (isNaN(row) || isNaN(col) || row < 0 || row >= boardSize || col < 0 || col >= boardSize || board[row][col] === null) {
+      alert("Invalid selection. Try again.");
+      return;
+    }
+
+    // Remove opponent's symbol from the chosen square
+    const removedSymbol = board[row][col];
+    board[row][col] = null;
+    const squareToRemove = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+    squareToRemove.textContent = "";
+
+    // Update bomb availability and player turn
+    bombAvailable = false;
+    switchPlayer();
+
+    // Update the prince's status
+    updatePrinceStatus();
+
+    // Inform players about the successful bomb usage
+    alert(`Boom! Player ${getCurrentPlayerSymbol()}'s bomb removed ${removedSymbol}'s symbol.`);
+  }
+}
+
+// Function to send a move to the Flask server
+function sendMove(row, col) {
+  fetch('/make_move', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 'row': row, 'col': col }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.game_over) {
+      alert(`Player ${getCurrentPlayerSymbol()} wins!`);
+    } else {
+      updateBoard();
+    }
+  });
+}
+
+    // Function to update the board from the Flask server
+    function updateBoard() {
+      fetch('/get_board')
+      .then(response => response.json())
+      .then(data => {
+      // Update the board based on the data received from the server
+    });
+  }
+
+
+    // Event listener for the reset button
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+    // Initialize the game board
+    createBoard();
+  });
+
+
+
+</script>
+
+</body>
+</html>
