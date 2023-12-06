@@ -9,10 +9,13 @@ game_over = False
 current_player_symbol = "X"
 bomb_available = True
 
-
 @app.route('/')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/game')
 def index():
-    return render_template('index.html')
+    return render_template('game.html')
 
 
 @app.route('/get_board', methods=['GET'])
