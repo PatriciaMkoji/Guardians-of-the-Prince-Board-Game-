@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "guardians-of-the-prince-board-game-"
+version = "0.1.0"
+description = "Guardian of the Prince Board Game is a Game where there is a quest to save the prince and you can pick sides wether to be the villan or the hero!!\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[3~"
+authors = ["PatriciaMkoji <keyshotrisha@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
