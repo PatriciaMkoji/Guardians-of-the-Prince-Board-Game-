@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 # Initialize the game variables
-board_size = 3
+board_size = 4
 board = [[None] * board_size for _ in range(board_size)]
 game_over = False
 current_player_symbol = "X"
@@ -18,12 +18,17 @@ def landing():
 def index():
     return render_template('game.html')
 
+def serve_Welcome_files(filename):
+    return send_from_directory('templates', filename)
+
+@app.route('/Welcome')
+def welcome():
+    return render_template('Welcome.html')
 
 @app.route('/get_board', methods=['GET'])
 def get_board():
     global board
     return jsonify(board)
-
 
 @app.route('/make_move', methods=['POST'])
 def make_move():
@@ -43,7 +48,6 @@ def make_move():
 
     return jsonify({'game_over': game_over})
 
-
 @app.route('/reset_game', methods=['POST'])
 def reset_game():
     global board, game_over, current_player_symbol, bomb_available
@@ -53,6 +57,5 @@ def reset_game():
     bomb_available = True
     return jsonify({'success': True})
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8000)
